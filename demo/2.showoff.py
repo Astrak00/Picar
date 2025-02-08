@@ -267,8 +267,10 @@ def main():
             # time.sleep(0.2)
     except KeyboardInterrupt:
         print("\nExiting detection loop...")
+        px.stop()
     finally:
         picam2.stop()
+        px.stop()
 
 if __name__ == "__main__":
     main()
