@@ -1,6 +1,6 @@
 from picarx import Picarx
 import time
-from robot_hat import Music,TTS
+from robot_hat import Music, TTS
 
 DIRECTION_STEP = 10
 DIRECTION_MAX = 30
@@ -9,11 +9,8 @@ DANGER_DISTANCE = SAFE_DISTANCE // 2
 MOVE_POWER = 50
 POWER = MOVE_POWER 
 
-OBSTACLE_DETECTED_MSG = "Obstacle detected. Turning around."
-
 music = Music()
 tts = TTS()
-
 
 if __name__ == "__main__":
     
@@ -35,38 +32,46 @@ if __name__ == "__main__":
         time.sleep(0.3)
         px.backward(MOVE_POWER * 2)
         time.sleep(0.3)
-        px.forward(0)
-        px.stop()
         px.stop()
         
         input_txt = ""
         while input_txt.lower() != "y":
-            input_txt = input("Reaady fot the obstacle avoidance test? (y/n): ")
+            input_txt = input("Ready for the obstacle avoidance test? (y/n): ")
 
         bonk_times = 0
         start = time.time()
         # Run for 20 seconds
         while time.time() - start < 20:
             distance = round(px.ultrasonic.read(), 2)
-            # print("distance: ", distance)
             if distance >= SAFE_DISTANCE:
                 print(f"Safe distance. Moving forward. {distance}")
                 px.set_dir_servo_angle(0)
                 px.forward(POWER)
+
             elif distance >= DANGER_DISTANCE:
                 print(f"Danger distance. Moving forward. {distance}")
-                px.set_dir_servo_angle(-30)
+                px.set_dir_servo_angle(-30)  # slight left turn
                 px.forward(POWER)
                 time.sleep(0.2)
+
             else:
-                print(f"Too close. Moving backward.{distance}")
-                px.set_dir_servo_angle(0)
+                print(f"Too close. Backing up to the right. {distance}")
                 bonk_times += 1
+
+                px.stop()
                 time.sleep(0.2)
+
+                px.set_dir_servo_angle(30)
+
                 px.backward(POWER*2)
+                time.sleep(1.0)
+
+                px.stop()
+                px.set_dir_servo_angle(0)
+                px.forward(POWER)
+                time.sleep(0.2)
 
     finally:
         print(f"Times beeped {bonk_times}")
-        px.forward(0)
-
-        
+        px.stop()
+        px.set_dir_servo_angle(0)
