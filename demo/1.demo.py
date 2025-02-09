@@ -43,28 +43,30 @@ if __name__ == "__main__":
         while input_txt.lower() != "y":
             input_txt = input("Reaady fot the obstacle avoidance test? (y/n): ")
 
-        times_beeped = 0
+        bonk_times = 0
         start = time.time()
-        while time.time() - start < 20 and times_beeped < 10:
+        # Run for 20 seconds
+        while time.time() - start < 20:
             distance = round(px.ultrasonic.read(), 2)
-            print("distance: ", distance)
+            # print("distance: ", distance)
             if distance >= SAFE_DISTANCE:
+                print(f"Safe distance. Moving forward. {distance}")
                 px.set_dir_servo_angle(0)
                 px.forward(POWER)
-            elif distance >= DANGER_DISTANCE // 2:
-                px.set_dir_servo_angle(30)
+            elif distance >= DANGER_DISTANCE:
+                print(f"Danger distance. Moving forward. {distance}")
+                px.set_dir_servo_angle(-30)
                 px.forward(POWER)
                 time.sleep(0.2)
             else:
-                px.set_dir_servo_angle(-30)
-                music.sound_play_threading('../sounds/car-double-horn.wav')
-                times_beeped += 1
-                #tts.say(OBSTACLE_DETECTED_MSG)
-                time.sleep(0.5)
-                px.backward(POWER)
+                print(f"Too close. Moving backward.{distance}")
+                px.set_dir_servo_angle(0)
+                bonk_times += 1
+                time.sleep(0.2)
+                px.backward(POWER*2)
 
     finally:
-        print(f"Times beeped {times_beeped}")
+        print(f"Times beeped {bonk_times}")
         px.forward(0)
 
         
