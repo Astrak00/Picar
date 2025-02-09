@@ -21,8 +21,7 @@ DIRECTION_STEP = 10
 DIRECTION_MAX = 30
 SAFE_DISTANCE = 40
 DANGER_DISTANCE = SAFE_DISTANCE // 2
-MOVE_POWER = 5
-POWER = MOVE_POWER 
+POWER = 5 
 
 
 '''Global detection dictionary'''
@@ -178,6 +177,24 @@ def traffic_sign_detect(img, model=None, labels=None, border_rgb=(255, 0, 0)):
 
     return img  # We won't display it in headless mode
 
+def manage_movement(px: Picarx):
+    distance = round(px.ultrasonic.read(), 2)
+    # print("distance: ", distance)
+    if distance >= SAFE_DISTANCE:
+        print(f"Safe distance. Moving forward. {distance}")
+        px.set_dir_servo_angle(0)
+        px.forward(POWER)
+    elif distance >= DANGER_DISTANCE:
+        print(f"Danger distance. Moving forward. {distance}")
+        px.set_dir_servo_angle(-30)
+        px.forward(POWER)
+        time.sleep(0.2)
+    else:
+        print(f"Too close. Moving backward.{distance}")
+        px.set_dir_servo_angle(0)
+        time.sleep(0.2)
+        px.backward(POWER*2)
+
 
 def main():
     """
@@ -241,30 +258,9 @@ def main():
                         time.sleep(0.1)
                 else:
                     state = "safe"
-
-                    # Start modifications here:
-                    distance = round(px.ultrasonic.read(), 2)
-             
-                    # print("distance: ", distance)
-                    if distance >= SAFE_DISTANCE:
-                        print(f"Safe distance. Moving forward. {distance}")
-                        px.set_dir_servo_angle(0)
-                        px.forward(POWER)
-                    elif distance >= DANGER_DISTANCE:
-                        print(f"Danger distance. Moving forward. {distance}")
-                        px.set_dir_servo_angle(-30)
-                        px.forward(POWER)
-                        time.sleep(0.2)
-                    else:
-                        print(f"Too close. Moving backward.{distance}")
-                        px.set_dir_servo_angle(0)
-                        time.sleep(0.2)
-                        px.backward(POWER*2)
-                    # End modifications here.
+                    manage_movement(px)
                 last_state = state
 
-            # small delay to reduce spam
-            # time.sleep(0.2)
     except KeyboardInterrupt:
         print("\nExiting detection loop...")
         px.stop()
