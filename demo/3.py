@@ -5,7 +5,7 @@ import numpy as np
 
 DIRECTION_STEP = 10  # Angle step for scanning
 DIRECTION_MAX = 60   # Maximum pan angle for scanning
-SAFE_DISTANCE = 100005   # Safe distance threshold in cm
+SAFE_DISTANCE = 50   # Safe distance threshold in cm
 OBSTACLE_DETECTION_DISTANCE = 25
 DIVISION_CONSTANT = 1
 
@@ -35,14 +35,25 @@ def scan_environment(car: Car) -> dict:
         print(f"Angle: {angle}°, Distance: {distance} cm")
 
 
-    max_distance = max(scan_data.values())
     for i in scan_data.keys():
-        # if scan_data[i] <= -2:
-        #     scan_data[i] = max_distance
-        if scan_data[i] <= SAFE_DISTANCE / DIVISION_CONSTANT:
+        if scan_data[i] <= SAFE_DISTANCE / DIVISION_CONSTANT and scan_data[i] > 0:
             obstacle_position = (car.pos_x + int(scan_data[i] * np.cos(np.radians(i))), car.pos_y + int(scan_data[i] * np.sin(np.radians(i))))
             print(f"Obstacle detected at {obstacle_position}")
             car.map[obstacle_position] = 1
+        # If two points are close enough **between them**, we interpolate also have the points in between the two points as obstacles
+        for i in range(-DIRECTION_MAX, DIRECTION_MAX, DIRECTION_STEP):
+            if scan_data[i] <= SAFE_DISTANCE / DIVISION_CONSTANT and scan_data[i] > 0:
+                next_angle = i + DIRECTION_STEP
+                if next_angle in scan_data and scan_data[next_angle] <= SAFE_DISTANCE / DIVISION_CONSTANT and scan_data[next_angle] > 0:
+                    x1, y1 = car.pos_x + int(scan_data[i] * np.cos(np.radians(i))), car.pos_y + int(scan_data[i] * np.sin(np.radians(i)))
+                    x2, y2 = car.pos_x + int(scan_data[next_angle] * np.cos(np.radians(next_angle))), car.pos_y + int(scan_data[next_angle] * np.sin(np.radians(next_angle)))
+                    num_points = max(abs(x2 - x1), abs(y2 - y1))
+                    if num_points != 0:
+                        for j in range(num_points + 1):
+                            x = x1 + j * (x2 - x1) // num_points
+                            y = y1 + j * (y2 - y1) // num_points
+                            car.map[x, y] = 1
+        
             
     car.px.set_cam_pan_angle(0)  # Reset camera to center
     return scan_data
@@ -77,7 +88,10 @@ if __name__ == "__main__":
 
         print("Plot saved as 'environment_scan.png'")
 
-        car.map[car.pos_x, car.pos_y] = 7
+        # car.map[car.pos_x, car.pos_y] = 7
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                car.map[car.pos_x + dx, car.pos_y + dy] = 7
         map_list = car.map.tolist()
         np.savetxt('map.txt', map_list, fmt='%d')
 
