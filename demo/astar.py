@@ -2,7 +2,10 @@ import math
 import numpy as np
 import time
 
-def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: int) -> tuple[list[tuple[int, int]], float]:
+def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: int) -> tuple[list[tuple[int, int]], float, list[str], tuple[int, int, int]]:
+    num_cols:int
+    num_rows:int
+
     num_cols, num_rows = map.shape
 
     # Input validation
@@ -39,10 +42,10 @@ def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: i
 
     # Initialize open and closed sets with state tuples (x, y, facing)
     start_state = (start[0], start[1], facing)
-    open_set = {start_state}
-    closed_set = set()
+    open_set: set[tuple[int, int, int]] = {start_state}
+    closed_set: set[tuple[int, int, int]] = set()
 
-    came_from = {}
+    came_from: set[tuple[int, int, int]] = {}
     g_score = {start_state: 0}
     f_score = {start_state: heuristic(start, end)}
 
@@ -50,19 +53,29 @@ def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: i
     turn_options = [-30, 0, 30]
 
     while open_set:
-        current = min(open_set, key=lambda s: f_score.get(s, float('inf')))
+        current: tuple[int, int, int] = min(open_set, key=lambda s: f_score.get(s, float('inf')))
 
         # Check goal (position only, regardless of facing)
         if (current[0], current[1]) == end:
             final_state = current
-            path = []
+            path: list[tuple[int, int]] = []
+            movements: list[str] = []
+            picar_movements: list[tuple[int, int, int]] = []
             state = current
             while state in came_from:
                 path.append((state[0], state[1]))
-                state = came_from[state]
+                prev_state = came_from[state]
+                if state[2] != prev_state[2]:
+                    movements.append(f"Turn to {state[2] - prev_state[2]} degrees")
+                    picar_movements.append((state[0], state[1], state[2] - prev_state[2] ))
+                else :
+                    picar_movements.append((state[0], state[1], 0))
+                movements.append(f"Move to {(state[0], state[1])}")
+                state = prev_state
             path.append((start[0], start[1]))
+            movements.append(f"Start at {(start[0], start[1])}")
             final_cost = g_score[final_state]
-            return path[::-1], final_cost
+            return path[::-1], final_cost, movements[::-1], picar_movements[::-1]
 
         open_set.remove(current)
         closed_set.add(current)
@@ -74,8 +87,8 @@ def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: i
             new_facing = (current_facing + turn) % 360
             # Compute movement: move 1 cell in the direction of new_facing.
             # Using custom_round to approximate the next grid cell.
-            dx = custom_round(math.cos(math.radians(new_facing)))
-            dy = custom_round(math.sin(math.radians(new_facing)))
+            dx = round(math.cos(math.radians(new_facing)))
+            dy = round(math.sin(math.radians(new_facing)))
             next_pos = (current_pos[0] + dx, current_pos[1] + dy)
 
             # Skip if out of bounds or obstacle
@@ -101,7 +114,7 @@ def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: i
             g_score[next_state] = tentative_g_score
             f_score[next_state] = tentative_g_score + heuristic(next_pos, end)
 
-    return [], float('inf')  # No path found
+    return [], float('inf'), []  # No path found
 
 if __name__ == "__main__":
     path = False
@@ -131,7 +144,7 @@ if __name__ == "__main__":
     while not path:
         try:
 
-            map = np.random.choice([0, 1], size=(200, 200), p=[0.65, 0.35])
+            map = np.random.choice([0, 1], size=(20, 20), p=[0.65, 0.35])
 
             # Test parameters
             start = (0, 0)
@@ -139,7 +152,7 @@ if __name__ == "__main__":
             facing = 0  # must be a multiple of 30
 
             start_time = time.time()
-            path, total_cost = astar(map, start, end, facing)
+            path, total_cost, movements, picar_movements = astar(map, start, end, facing)
 
             if path:
                 print(f"Path finding time: {time.time() - start_time:.3f} seconds")
@@ -152,6 +165,13 @@ if __name__ == "__main__":
                 print("\nMap with path (0: free, 1: obstacle, 2: path):")
                 for row in map_with_path:
                     print("".join('.' if cell == 0 else str(cell) for cell in row))
+
+                print("\nMovements taken:")
+                for move in movements:
+                    print(move)
+
+                print("\nPicar movements:")
+                print(picar_movements)
             else:
                 print("No path found!")
         except ValueError as e:
