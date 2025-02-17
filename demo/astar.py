@@ -2,7 +2,7 @@ import math
 import numpy as np
 import time
 
-def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: int) -> tuple[list[tuple[int, int]], float, list[str], tuple[int, int, int]]:
+def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: int, num_obstacles_found: list[tuple[int, int]]) -> tuple[list[tuple[int, int]], float, list[str], tuple[int, int, int]]:
     num_cols:int
     num_rows:int
 
@@ -30,8 +30,21 @@ def astar(map: np.array, start: tuple[int, int], end: tuple[int, int], facing: i
         return (angle_diff / 30) * 0.5
 
     def heuristic(pos: tuple[int, int], goal: tuple[int, int]) -> float:
-        """Manhattan distance heuristic"""
-        return abs(goal[0] - pos[0]) + abs(goal[1] - pos[1])
+        """Combined Manhattan distance and obstacle proximity heuristic"""
+        manhattan_distance = abs(goal[0] - pos[0]) + abs(goal[1] - pos[1])
+        
+        if num_obstacles_found == []:
+            return manhattan_distance
+        # Find the closest obstacle
+        min_obstacle_distance = float('inf')
+        for obstacle in num_obstacles_found:
+            distance = abs(obstacle[0] - pos[0]) + abs(obstacle[1] - pos[1])
+            if distance < min_obstacle_distance:
+                min_obstacle_distance = distance
+
+        
+        # Combine the heuristics
+        return manhattan_distance + (100 - min_obstacle_distance)
 
     def custom_round(x: float) -> int:
         """Round half-up (i.e. 0.5 -> 1, -0.5 -> -1)"""
