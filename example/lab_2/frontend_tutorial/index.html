@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IoT Car Controller</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script defer src="index.js"></script>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .gamepad {
+      display: grid;
+      grid-template-columns: 50px 50px 50px;
+      grid-template-rows: 50px 50px 50px;
+      gap: 10px;
+      width: 180px;
+      margin: 40px auto;
+    }
+    .btn {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      border: none;
+      background-color: #ddd;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .btn:hover {
+      background-color: #bbb;
+    }
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .sensor-cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px auto;
+    }
+    .sensor-card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      background-color: #f4f4f4;
+      width: 200px;
+      text-align: center;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    pre {
+      text-align: left;
+      margin: 20px auto;
+      width: 80%;
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      overflow-x: auto;
+    }
+    #greet, #greet_from_server {
+      margin: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>IoT Car Controller</h1>
+
+  <div class="gamepad">
+    <div class="center"></div>
+    <button id="forward-btn" class="btn"><i class="fas fa-arrow-up"></i></button>
+    <div class="center"></div>
+
+    <button id="left-btn" class="btn"><i class="fas fa-arrow-left"></i></button>
+    <button id="stop-btn" class="btn">■</button>
+    <button id="right-btn" class="btn"><i class="fas fa-arrow-right"></i></button>
+
+    <div class="center"></div>
+    <button id="backward-btn" class="btn"><i class="fas fa-arrow-down"></i></button>
+    <div class="center"></div>
+  </div>
+
+  <h2>Car Sensor Data</h2>
+  <div id="sensor-display">
+    Waiting for data...
+  </div>
+
+  <h2>Car Response</h2>
+  <pre id="command-response"></pre>
+
+  <h2>Greet the Car</h2>
+  <input id="myName" placeholder="Enter your name" />
+  <button onclick="greeting()">Submit</button>
+  <p id="greet"></p>
+  <p id="greet_from_server"></p>
+</body>
+</html>
