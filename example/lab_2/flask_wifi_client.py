@@ -36,7 +36,7 @@ def sensor_data():
 
 @app.route('/')
 def index():
-    return "Flask is running"
+    return "Flask API for Car Control is running. Use /move and /sensor_data endpoints."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
